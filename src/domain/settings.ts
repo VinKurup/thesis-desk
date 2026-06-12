@@ -1,4 +1,7 @@
 export const FINNHUB_KEY = "finnhub_api_key";
+export const OPENROUTER_KEY = "openrouter_api_key";
+export const OPENROUTER_MODEL = "openrouter_model";
+export const DEFAULT_OPENROUTER_MODEL = "anthropic/claude-3.5-haiku";
 
 export interface SettingsRepository {
   get(key: string): Promise<string | null>;

@@ -1,5 +1,6 @@
 import { PlanRepository, StoredPlan } from "../domain/repository";
 import { parseImport } from "../domain/import";
+import { ImportPayloadType } from "../domain/schema";
 
 export interface PlanState {
   current: StoredPlan | null;
@@ -30,6 +31,11 @@ export function createPlanStore(repo: PlanRepository) {
       const stored = await repo.savePlan(parsed.value);
       set({ current: stored, loading: false });
       return { ok: true };
+    },
+    async applyImport(payload: ImportPayloadType): Promise<void> {
+      set({ loading: true });
+      const stored = await repo.savePlan(payload);
+      set({ current: stored, loading: false });
     },
     async loadFirstPlan(): Promise<void> {
       set({ loading: true });

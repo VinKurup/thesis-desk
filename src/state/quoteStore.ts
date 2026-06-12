@@ -1,4 +1,5 @@
 import { SettingsRepository, FINNHUB_KEY } from "../domain/settings";
+import { isUsMarketOpen } from "../domain/marketHours";
 import { Quote } from "../domain/quotes";
 import { evaluateTriggers, TriggerStatus } from "../domain/triggerEval";
 import { StoredPosition, StoredWatchlistItem } from "../domain/repository";
@@ -20,9 +21,15 @@ export interface QuoteStoreDeps {
   settings: SettingsRepository;
   fetchQuotes: QuoteFetcher;
   now?: () => number;
+  isMarketOpen?: (d: Date) => boolean;
 }
 
-export function createQuoteStore({ settings, fetchQuotes, now = () => Date.now() }: QuoteStoreDeps) {
+export function createQuoteStore({
+  settings,
+  fetchQuotes,
+  now = () => Date.now(),
+  isMarketOpen = isUsMarketOpen,
+}: QuoteStoreDeps) {
   let state: QuoteState = {
     quotes: new Map(), statuses: [], lastUpdated: null, loading: false, error: null,
   };
@@ -66,6 +73,7 @@ export function createQuoteStore({ settings, fetchQuotes, now = () => Date.now()
   ) {
     stopPolling();
     timer = setInterval(() => {
+      if (!isMarketOpen(new Date(now()))) return;
       const { positions, watchlist } = getInputs();
       void refresh(positions, watchlist);
     }, intervalMs);

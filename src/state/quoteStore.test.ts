@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createQuoteStore, QuoteFetcher } from "./quoteStore";
 import { InMemorySettingsRepository, FINNHUB_KEY } from "../domain/settings";
 import { buildStoredPlan } from "../domain/repository";
@@ -42,5 +42,33 @@ describe("quoteStore", () => {
     await store.refresh(plan.positions, plan.watchlist);
     expect(store.getState().error).toMatch(/network down/);
     expect(store.getState().loading).toBe(false);
+  });
+
+  it("auto-polls when the market is open", async () => {
+    const settings = new InMemorySettingsRepository();
+    await settings.set(FINNHUB_KEY, "key");
+    let calls = 0;
+    const fetcher: QuoteFetcher = async () => { calls++; return { quotes: new Map(), failed: [] }; };
+    const store = createQuoteStore({ settings, fetchQuotes: fetcher, isMarketOpen: () => true });
+    vi.useFakeTimers();
+    store.startPolling(() => ({ positions: plan.positions, watchlist: plan.watchlist }), 1000);
+    await vi.advanceTimersByTimeAsync(1000);
+    store.stopPolling();
+    vi.useRealTimers();
+    expect(calls).toBe(1);
+  });
+
+  it("skips auto-poll when the market is closed", async () => {
+    const settings = new InMemorySettingsRepository();
+    await settings.set(FINNHUB_KEY, "key");
+    let calls = 0;
+    const fetcher: QuoteFetcher = async () => { calls++; return { quotes: new Map(), failed: [] }; };
+    const store = createQuoteStore({ settings, fetchQuotes: fetcher, isMarketOpen: () => false });
+    vi.useFakeTimers();
+    store.startPolling(() => ({ positions: plan.positions, watchlist: plan.watchlist }), 1000);
+    await vi.advanceTimersByTimeAsync(1000);
+    store.stopPolling();
+    vi.useRealTimers();
+    expect(calls).toBe(0);
   });
 });

@@ -21,26 +21,31 @@ export function ImportView({
   async function onImport() {
     setBusy(true);
     setStatus(null);
-    const apiKey = await settings.get(OPENROUTER_KEY);
-    const result = await smartImport(text, {
-      parse: parseImport,
-      hasKey: !!apiKey,
-      convert: (raw) => convertToPlan(raw, createOpenRouterClient(settings)),
-    });
-    if (result.ok) {
-      await store.applyImport(result.payload);
-      setStatus({
-        ok: true,
-        msg: result.via === "llm" ? "Imported (converted via OpenRouter)." : "Imported successfully.",
+    try {
+      const apiKey = await settings.get(OPENROUTER_KEY);
+      const result = await smartImport(text, {
+        parse: parseImport,
+        hasKey: !!apiKey,
+        convert: (raw) => convertToPlan(raw, createOpenRouterClient(settings)),
       });
-    } else {
-      const hint =
-        result.stage === "strict" && !apiKey
-          ? "\n\nTip: add an OpenRouter key in Settings to auto-convert markdown / loose JSON, or use the extraction prompt below."
-          : "";
-      setStatus({ ok: false, msg: result.error + hint });
+      if (result.ok) {
+        await store.applyImport(result.payload);
+        setStatus({
+          ok: true,
+          msg: result.via === "llm" ? "Imported (converted via OpenRouter)." : "Imported successfully.",
+        });
+      } else {
+        const hint =
+          result.stage === "strict" && !apiKey
+            ? "\n\nTip: add an OpenRouter key in Settings to auto-convert markdown / loose JSON, or use the extraction prompt below."
+            : "";
+        setStatus({ ok: false, msg: result.error + hint });
+      }
+    } catch (e) {
+      setStatus({ ok: false, msg: (e as Error).message || "Unexpected error during import." });
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   function copy(value: string) {

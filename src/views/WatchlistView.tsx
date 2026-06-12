@@ -1,6 +1,12 @@
 import { StoredPlan } from "../domain/repository";
+import { Quote } from "../domain/quotes";
 
-export function WatchlistView({ plan }: { plan: StoredPlan }) {
+export function WatchlistView({
+  plan,
+}: {
+  plan: StoredPlan;
+  quotes?: Map<string, Quote>;
+}) {
   const watching = plan.watchlist.filter((w) => w.status === "watching");
   const offBoard = plan.watchlist.filter((w) => w.status === "off_board");
   return (

@@ -1,6 +1,14 @@
 import { StoredPlan } from "../domain/repository";
+import { Quote } from "../domain/quotes";
+import { TriggerStatus } from "../domain/triggerEval";
 
-export function PositionsView({ plan }: { plan: StoredPlan }) {
+export function PositionsView({
+  plan,
+}: {
+  plan: StoredPlan;
+  quotes?: Map<string, Quote>;
+  statuses?: TriggerStatus[];
+}) {
   return (
     <div style={{ padding: 16, maxWidth: 900 }}>
       <h2>Positions</h2>

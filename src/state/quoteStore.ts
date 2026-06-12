@@ -56,6 +56,21 @@ export function createQuoteStore({ settings, fetchQuotes, now = () => Date.now()
     }
   }
 
+  function stopPolling() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+
+  function startPolling(
+    getInputs: () => { positions: StoredPosition[]; watchlist: StoredWatchlistItem[] },
+    intervalMs = 60000
+  ) {
+    stopPolling();
+    timer = setInterval(() => {
+      const { positions, watchlist } = getInputs();
+      void refresh(positions, watchlist);
+    }, intervalMs);
+  }
+
   return {
     getState: () => state,
     subscribe(listener: () => void) {
@@ -63,19 +78,8 @@ export function createQuoteStore({ settings, fetchQuotes, now = () => Date.now()
       return () => listeners.delete(listener);
     },
     refresh,
-    startPolling(
-      getInputs: () => { positions: StoredPosition[]; watchlist: StoredWatchlistItem[] },
-      intervalMs = 60000
-    ) {
-      this.stopPolling();
-      timer = setInterval(() => {
-        const { positions, watchlist } = getInputs();
-        void refresh(positions, watchlist);
-      }, intervalMs);
-    },
-    stopPolling() {
-      if (timer) { clearInterval(timer); timer = null; }
-    },
+    startPolling,
+    stopPolling,
   };
 }
 

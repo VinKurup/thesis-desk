@@ -1,6 +1,14 @@
 import { StoredPlan } from "../domain/repository";
+import { Quote } from "../domain/quotes";
+import { PriceBadge } from "./PriceBadge";
 
-export function WatchlistView({ plan }: { plan: StoredPlan }) {
+export function WatchlistView({
+  plan,
+  quotes = new Map(),
+}: {
+  plan: StoredPlan;
+  quotes?: Map<string, Quote>;
+}) {
   const watching = plan.watchlist.filter((w) => w.status === "watching");
   const offBoard = plan.watchlist.filter((w) => w.status === "off_board");
   return (
@@ -8,7 +16,8 @@ export function WatchlistView({ plan }: { plan: StoredPlan }) {
       <h2>Watchlist</h2>
       {watching.map((w) => (
         <div key={w.id} style={{ borderBottom: "1px solid #eee", padding: "8px 0" }}>
-          <strong>{w.ticker}</strong> {w.price_note} {w.score && <em>· {w.score}</em>}
+          <strong>{w.ticker}</strong> <PriceBadge quote={quotes.get(w.ticker)} />{" "}
+          {w.price_note} {w.score && <em>· {w.score}</em>}
           <div>{w.narrative}</div>
           {w.needs && <div style={{ color: "#666" }}>Needs: {w.needs}</div>}
         </div>

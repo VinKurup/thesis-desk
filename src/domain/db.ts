@@ -22,6 +22,8 @@ const MIGRATIONS = [
   `CREATE TABLE IF NOT EXISTS events (
      id TEXT PRIMARY KEY, plan_id TEXT, date TEXT, description TEXT, ticker TEXT,
      type TEXT, sort_order INTEGER);`,
+  `CREATE TABLE IF NOT EXISTS settings (
+     key TEXT PRIMARY KEY, value TEXT);`,
 ];
 
 export async function getDb(): Promise<Database> {

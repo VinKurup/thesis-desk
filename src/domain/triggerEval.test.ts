@@ -46,6 +46,10 @@ describe("evaluateTriggers", () => {
     expect(s[0].state).toBe("manual");
     expect(s[0].message).toMatch(/no quote/i);
   });
+
+  it("classifies a kill at exactly the threshold price as near, not fired", () => {
+    expect(statusFor([globex], quote("GLOBEX", 25), "kill")[0].state).toBe("near");
+  });
 });
 
 describe("positionAccent", () => {
@@ -60,5 +64,10 @@ describe("positionAccent", () => {
   it("is none when everything is clear or manual", () => {
     const s = evaluateTriggers([acme], quote("ACME", 20));
     expect(positionAccent(s)).toBe("none");
+  });
+
+  it("is amber when a kill is near but not fired", () => {
+    const s = evaluateTriggers([globex], quote("GLOBEX", 25.5));
+    expect(positionAccent(s)).toBe("amber");
   });
 });

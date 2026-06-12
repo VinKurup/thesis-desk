@@ -4,6 +4,7 @@ import { createQuoteStore } from "./state/quoteStore";
 import { SqlitePlanRepository } from "./domain/sqliteRepository";
 import { SqliteSettingsRepository } from "./domain/sqliteSettings";
 import { fetchQuotes } from "./domain/quotes";
+import { isUsMarketOpen } from "./domain/marketHours";
 import { tauriHttpClient } from "./domain/tauriHttp";
 import { ImportView } from "./views/ImportView";
 import { SettingsView } from "./views/SettingsView";
@@ -57,6 +58,7 @@ export default function App() {
   const qs = quoteStore.getState();
   const updatedAgo =
     qs.lastUpdated != null ? `updated ${Math.round((Date.now() - qs.lastUpdated) / 1000)}s ago` : "";
+  const marketClosed = !isUsMarketOpen(new Date());
 
   const tabs: Tab[] = ["plan", "positions", "watchlist", "calendar", "import", "settings"];
 
@@ -68,8 +70,13 @@ export default function App() {
             {t}
           </button>
         ))}
-        <span style={{ marginLeft: "auto", color: "#888", fontSize: 12 }}>{updatedAgo}</span>
-        <button onClick={() => current && quoteStore.refresh(current.positions, current.watchlist)}>
+        <span style={{ marginLeft: "auto", color: "#888", fontSize: 12 }}>
+          {updatedAgo}{marketClosed ? " · market closed" : ""}
+        </span>
+        <button
+          onClick={() => current && quoteStore.refresh(current.positions, current.watchlist)}
+          disabled={!current}
+        >
           Refresh
         </button>
       </nav>
@@ -78,7 +85,7 @@ export default function App() {
       {!current && tab !== "import" && tab !== "settings" && (
         <p style={{ padding: 16 }}>No plan loaded. Go to <strong>import</strong> to add one.</p>
       )}
-      {tab === "import" && <ImportView store={planStore} />}
+      {tab === "import" && <ImportView store={planStore} settings={settingsRepo} />}
       {tab === "settings" && (
         <SettingsView
           settings={settingsRepo}

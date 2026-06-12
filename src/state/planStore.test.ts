@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createPlanStore } from "./planStore";
 import { InMemoryPlanRepository } from "../domain/repository";
 import { examplePlanJson } from "../test/fixtures/examplePlan";
+import { ImportPayload } from "../domain/schema";
 
 describe("planStore", () => {
   it("imports valid text and exposes the stored plan", async () => {
@@ -25,5 +26,11 @@ describe("planStore", () => {
     const store2 = createPlanStore(repo);
     await store2.loadFirstPlan();
     expect(store2.getState().current?.plan.title).toBe("Example Trading Plan");
+  });
+
+  it("applyImport persists a validated payload and sets current", async () => {
+    const store = createPlanStore(new InMemoryPlanRepository());
+    await store.applyImport(ImportPayload.parse(examplePlanJson));
+    expect(store.getState().current?.plan.title).toBe("Example Trading Plan");
   });
 });
